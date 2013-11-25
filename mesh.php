@@ -1,4 +1,15 @@
-<pre>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Find nearest geographical nodes for 'N' nodes</title>
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAB73G9h9hzrihvhNvqUub7hQ_u28zFqDZptWETgeTYZ8_kUk3BhQON5dM2w1CnP_30L2DvY7VDNh99w"
+            type="text/javascript"></script>
+        <!--link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/theme/default/style.css" type="text/css"-->
+        <!--link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" -->
+  </head>
+  <body onload="init()">
 <?
 /*
   dugnadsnett.no - Find nearest geographical nodes for 'N' nodes
@@ -61,10 +72,37 @@ if (isset($_GET['nodes'])) {
     $n = sizeof($z);
   }
 } else {
-  $n = sizeof($z);
+  $n = 3;
 }
 
 $keys = array_slice($z, 0, $n, true);
+
+?>
+<table>
+<tr>
+<td valign="top">
+
+<h1>Find nearest geographical mesh nodes</h1>
+
+<p><b>Based on data from Petter Reinholdtsen's <a href="https://github.com/petterreinholdtsen/meshfx-node">meshfx-node</a> module on <a href="https://github.com/">github.com</a></b></p>
+
+<form method="get" action="mesh.php">
+<table>
+<tr>
+<th>Lon</th><td><input size=7 type="text" value="<? echo $location->longitude; ?>" name="lon" /></td>
+</tr>
+<tr>
+<th>Lat</th><td><input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
+</tr>
+<tr>
+<th>Nodes</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
+</tr>
+<tr><td>&nbsp;</td><td><input type="submit" value="Find nearest node" /></td></tr>
+</table>
+</form>
+
+<?
+print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>mac</th></tr>";
 
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -72,10 +110,9 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print $m->comment . "\t" . $m->last_seen . "\t" . $m->latitude . "\t" . $m->longitude . "\t" . $m->mac . "\n";
+      print "<tr><td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</td><td>" . $m->mac . "</td></tr>\n";
     }
   }
 }
 exit(0);
 ?>
-</pre>
