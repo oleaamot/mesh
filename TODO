@@ -1,0 +1,4 @@
+TODO lists for mesh
+
+- Use real distance calculations, not just absolute difference
+  http://www.linuxjournal.com/magazine/work-shell-calculating-distance-between-two-latitudelongitude-points
