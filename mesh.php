@@ -4,10 +4,8 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <title>Find nearest geographical nodes for 'N' nodes</title>
-    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAB73G9h9hzrihvhNvqUub7hQ_u28zFqDZptWETgeTYZ8_kUk3BhQON5dM2w1CnP_30L2DvY7VDNh99w"
-            type="text/javascript"></script>
-        <!--link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/theme/default/style.css" type="text/css"-->
-        <!--link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" -->
+        <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/theme/default/style.css" type="text/css" />
+        <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" />
   </head>
   <body onload="init()">
 <?
@@ -67,12 +65,12 @@ foreach($list as $node) {
 asort($z, SORT_NUMERIC);
 
 if (isset($_GET['nodes'])) {
-  $n = (int)(1)+(int)($_GET['nodes']);
+  $n = ($_GET['nodes']);
   if ($n > sizeof($z)) {
     $n = sizeof($z);
   }
 } else {
-  $n = 3;
+  $n = 26;
 }
 
 $keys = array_slice($z, 0, $n, true);
@@ -84,7 +82,7 @@ $keys = array_slice($z, 0, $n, true);
 
 <h1>Find nearest geographical mesh nodes</h1>
 
-<p><b>Based on data from Petter Reinholdtsen's <a href="https://github.com/petterreinholdtsen/meshfx-node">meshfx-node</a> module on <a href="https://github.com/">github.com</a></b></p>
+<p><b><a href="https://github.com/oleaamot/mesh">mesh</a> is based on data from Petter Reinholdtsen<? echo "'";?>s <a href="https://github.com/petterreinholdtsen/meshfx-node">meshfx-node</a> module on <a href="https://github.com/">github.com</a></b>.</p>
 
 <form method="get" action="mesh.php">
 <table>
@@ -95,14 +93,32 @@ $keys = array_slice($z, 0, $n, true);
 <th>Lat</th><td><input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
 </tr>
 <tr>
-<th>Hops</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
+<th>Nodes</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
 </tr>
-<tr><td>&nbsp;</td><td><input type="submit" value="Find nearest node" /></td></tr>
+<tr><td>&nbsp;</td><td><input type="submit" value="Update" /></td></tr>
 </table>
 </form>
 
+  <div id="mapdiv" style="width: 600px; height: 400px"></div>
+  <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+    
+    epsg4326 =  new OpenLayers.Projection("EPSG:4326"); //WGS 1984 projection
+    projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
+   
+var lonLat = new OpenLayers.LonLat( <? echo $location->longitude; ?> ,<? echo $location->latitude; ?> ).transform(epsg4326, projectTo);
+          
+    
+    var zoom=14;
+    map.setCenter (lonLat, zoom);
+
+    var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+    
+
 <?
-print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>mac</th></tr>";
+// print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>mac</th></tr>";
 
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -110,11 +126,52 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "<tr><td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</td><td>" . $m->mac . "</td></tr>\n";
+
+      // echo $m->k;
+
+      echo "var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( " . $m->longitude . ", " . $m->latitude . ").transform(epsg4326, projectTo),
+            {description:'" . $m->comment . "'} ,
+            {externalGraphic: 'mesh.png', graphicHeight: 25, graphicWidth: 21, graphicXOffset:-12, graphicYOffset:-25  }
+        ); vectorLayer.addFeatures(feature);\n";
+      
+      // print "<tr><td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</td><td>" . $m->mac . "</td></tr>\n";
     }
   }
-}
+    }
 ?>
+
+    map.addLayer(vectorLayer);
+ 
+    //Add a selector control to the vectorLayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(vectorLayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
+
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+          feature.geometry.getBounds().getCenterLonLat(),
+          null,
+          '<div class="markerContent">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      //feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
+
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+    
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+      
+  </script>
+  <div id="explanation">Popup bubbles appearing when you click a marker. The marker content is set within a feature attribute</div>
+
   </body>
 </html>
 <?
