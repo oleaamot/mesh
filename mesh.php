@@ -67,7 +67,7 @@ foreach($list as $node) {
 asort($z, SORT_NUMERIC);
 
 if (isset($_GET['nodes'])) {
-  $n = $_GET['nodes'];
+  $n = (int)(1)+(int)($_GET['nodes']);
   if ($n > sizeof($z)) {
     $n = sizeof($z);
   }
@@ -95,7 +95,7 @@ $keys = array_slice($z, 0, $n, true);
 <th>Lat</th><td><input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
 </tr>
 <tr>
-<th>Nodes</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
+<th>Hops</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
 </tr>
 <tr><td>&nbsp;</td><td><input type="submit" value="Find nearest node" /></td></tr>
 </table>
