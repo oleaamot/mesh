@@ -114,5 +114,9 @@ foreach($keys as $node => $key) {
     }
   }
 }
+?>
+  </body>
+</html>
+<?
 exit(0);
 ?>
