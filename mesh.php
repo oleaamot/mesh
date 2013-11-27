@@ -9,6 +9,7 @@
     <style type="text/css">
     <!--
 	 table { font-family: Verdana; font-size: 9px; }
+         tr { text-align: left; }
     -->
     </style>
   </head>
@@ -92,9 +93,9 @@ $keys = array_slice($z, 0, $n, true);
 <form method="get" action="mesh.php">
 <table>
 <tr>
+<td>Nodes: <input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
 <td>Lon: <input size=7 type="text" value="<? echo $location->longitude; ?>" name="lon" /></td>
 <td>Lat: <input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
-<td>Nodes: <input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
 <td><input type="submit" value="Update" /></td></tr>
 </table>
 </form>
@@ -103,7 +104,7 @@ $keys = array_slice($z, 0, $n, true);
 <tr>
 <td valign=top>
 <h2>Nearest Nodes</h2>
-<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></tr>
+	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>x</th><th>y</th><th>abs(x+y)</td></tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -111,7 +112,7 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td>\n  </tr>\n";
+      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.5f", $x[$m->k]); print "</td><td>"; printf("%0.5f", $y[$m->k]); print "</td><td>"; printf("%0.5f", $z[$m->k]); print "</td>\n  </tr>\n";
     }
   }
 }
@@ -198,7 +199,7 @@ foreach($keys as $node => $key) {
 foreach($list as $host) {
   $node = new Mesh;
   $node = $host;
-  print "<tr><td>" . $node->comment . "</td><td>" . $node->last_seen . "</td><td><a href='http://flynor.net/mesh/mesh.php?lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->longitude . "</a></td><td>" . $node->latitude . "</td><td>" . $node->mac . "</td></tr>\n";
+  print "<tr><td>" . $node->comment . "</td><td>" . $node->last_seen . "</td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->longitude . "</a></td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->latitude . "</a></td><td>" . $node->mac . "</td></tr>\n";
 }
 ?>
 </table>
