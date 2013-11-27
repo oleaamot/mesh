@@ -8,7 +8,7 @@ function torads($degrees) {
 function miles2kms($miles) { 
 	$ratio = 1.609344; 
 	$kms = $miles * $ratio; 
-	return $kms; 
+	return $kms;
 } 
 
 ?>
@@ -89,12 +89,6 @@ foreach($list as $node) {
   $lat2 = torads($node->latitude);
   $long2 = torads($node->longitude);
 
-  /* $lat1 = torads(39.75288); */
-  /* $long1 = torads(-105.000473); */
-
-  /* $lat2 = torads(41.878658); */
-  /* $long2 = torads(-87.640404); */
-
   $dlat = abs($lat2 - $lat1);
   $dlong = abs($long2 - $long1);
 
@@ -102,6 +96,7 @@ foreach($list as $node) {
   $c[$node->k] = 2 * atan2(sqrt($a), sqrt(1-$a));
 
   $l[$node->k] = $earth_radius * $c[$node->k];
+  
 
 }
 
@@ -144,7 +139,7 @@ $keys = array_slice($z, 0, $n, true);
 
 <p style='color: #ff0000'>WARNING: Values needs to be carefully checked manually!</p>
 
-	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>abs(&Delta;lon)</th><th>abs(&Delta;lat)</th><th>abs(&Delta;x+&Delta;y)</th><!-- distance --!></tr>
+	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>Distance</tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -152,7 +147,7 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.7f", $y[$m->k]); print "</td><td>"; printf("%0.7f", $x[$m->k]); print "</td><td>"; printf("%0.7f", $z[$m->k]); print "</td><td>~"; printf("%2.2f", miles2kms($l[$m->k])); print " km</td>\n  </tr>\n";
+      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>~"; printf("%2.0f", (1000*miles2kms($l[$m->k]))); print " meters</td>\n  </tr>\n";
     }
   }
 }
