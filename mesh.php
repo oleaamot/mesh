@@ -1,3 +1,19 @@
+<?
+$earth_radius = 6371.0072 * 0.6214;
+
+function torads($degrees) {
+	return ($degrees * (M_PI / 180));
+}
+
+function miles2kms($miles) { 
+	$ratio = 1.609344; 
+	$kms = $miles * $ratio; 
+	return $kms; 
+} 
+
+?>
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -66,6 +82,27 @@ foreach($list as $node) {
   $x[$node->k] = abs((float)$location->latitude-(float)$node->latitude);
   $y[$node->k] = abs((float)$location->longitude-(float)$node->longitude);
   $z[$node->k] = abs((float)($x[$node->k])+(float)($y[$node->k]));
+
+  $lat1 = torads($location->latitude);
+  $long1 = torads($location->longitude);
+
+  $lat2 = torads($node->latitude);
+  $long2 = torads($node->longitude);
+
+  /* $lat1 = torads(39.75288); */
+  /* $long1 = torads(-105.000473); */
+
+  /* $lat2 = torads(41.878658); */
+  /* $long2 = torads(-87.640404); */
+
+  $dlat = abs($lat2 - $lat1);
+  $dlong = abs($long2 - $long1);
+
+  $a = sin($dlat/2) * sin($dlat/2) + cos($lat1) * cos($lat2) * sin($dlong/2) * sin($dlong/2);
+  $c[$node->k] = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+  $l[$node->k] = $earth_radius * $c[$node->k];
+
 }
 
 asort($z, SORT_NUMERIC);
@@ -104,7 +141,10 @@ $keys = array_slice($z, 0, $n, true);
 <tr>
 <td valign=top>
 <h2>Nearest Nodes</h2>
-	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>abs(&Delta;lon)</th><th>abs(&Delta;lat)</th><th>abs(&Delta;x+&Delta;y)</td></tr>
+
+<p style='color: #ff0000'>WARNING: Values needs to be carefully checked manually!</p>
+
+	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>abs(&Delta;lon)</th><th>abs(&Delta;lat)</th><th>abs(&Delta;x+&Delta;y)</th><!-- distance --!></tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -112,7 +152,7 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.7f", $y[$m->k]); print "</td><td>"; printf("%0.7f", $x[$m->k]); print "</td><td>"; printf("%0.7f", $z[$m->k]); print "</td>\n  </tr>\n";
+      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.7f", $y[$m->k]); print "</td><td>"; printf("%0.7f", $x[$m->k]); print "</td><td>"; printf("%0.7f", $z[$m->k]); print "</td><td>~"; printf("%2.2f", miles2kms($l[$m->k])); print " km</td>\n  </tr>\n";
     }
   }
 }
