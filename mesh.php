@@ -4,8 +4,13 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <title>Find nearest geographical nodes for 'N' nodes</title>
-        <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/theme/default/style.css" type="text/css" />
-        <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" />
+        <!--link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/theme/default/style.css" type="text/css" / -->
+        <!-- link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" / -->
+    <style type="text/css">
+    <!--
+	 table { font-family: Verdana; font-size: 9px; }
+    -->
+    </style>
   </head>
   <body onload="init()">
 <?
@@ -70,13 +75,13 @@ if (isset($_GET['nodes'])) {
     $n = sizeof($z);
   }
 } else {
-  $n = 26;
+  $n = sizeof($z);
 }
 
 $keys = array_slice($z, 0, $n, true);
 
 ?>
-<table>
+<table valign=top>
 <tr>
 <td valign="top">
 
@@ -87,19 +92,32 @@ $keys = array_slice($z, 0, $n, true);
 <form method="get" action="mesh.php">
 <table>
 <tr>
-<th>Lon</th><td><input size=7 type="text" value="<? echo $location->longitude; ?>" name="lon" /></td>
-</tr>
-<tr>
-<th>Lat</th><td><input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
-</tr>
-<tr>
-<th>Nodes</th><td><input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
-</tr>
-<tr><td>&nbsp;</td><td><input type="submit" value="Update" /></td></tr>
+<td>Lon: <input size=7 type="text" value="<? echo $location->longitude; ?>" name="lon" /></td>
+<td>Lat: <input size=7 type="text" value="<? echo $location->latitude; ?>" name="lat" /></td>
+<td>Nodes: <input size=5 type="text" value="<? echo $n; ?>" name="nodes" /></td>
+<td><input type="submit" value="Update" /></td></tr>
 </table>
 </form>
 
-  <div id="mapdiv" style="width: 600px; height: 400px"></div>
+<table valign=top>
+<tr>
+<td valign=top>
+<h2>Nearest Nodes</h2>
+<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></tr>
+<?
+foreach($keys as $node => $key) {
+  $m = new Mesh;
+  $m->k = $node;
+  foreach($list as $host) {
+    if ($host->k == $m->k) {
+      $m = $host;
+      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td>\n  </tr>\n";
+    }
+  }
+}
+?>
+  </table>
+  <div id="mapdiv" style="width: 600px; height: 300px"></div>
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
   <script>
     map = new OpenLayers.Map("mapdiv");
@@ -118,7 +136,7 @@ var lonLat = new OpenLayers.LonLat( <? echo $location->longitude; ?> ,<? echo $l
     
 
 <?
-// print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>mac</th></tr>";
+// print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>MAC</th></tr>";
 
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -131,7 +149,7 @@ foreach($keys as $node => $key) {
 
       echo "var feature = new OpenLayers.Feature.Vector(
             new OpenLayers.Geometry.Point( " . $m->longitude . ", " . $m->latitude . ").transform(epsg4326, projectTo),
-            {description:'" . $m->comment . "'} ,
+            {description:'comment:" . $m->comment . "<br />MAC:" . $m->mac . "<br />last_seen:" . $m->last_seen . "'} ,
             {externalGraphic: 'mesh.png', graphicHeight: 25, graphicWidth: 21, graphicXOffset:-12, graphicYOffset:-25  }
         ); vectorLayer.addFeatures(feature);\n";
       
@@ -170,8 +188,23 @@ foreach($keys as $node => $key) {
     controls['selector'].activate();
       
   </script>
-  <div id="explanation">Popup bubbles appearing when you click a marker. The marker content is set within a feature attribute</div>
+</td>
+<td valign="top">
 
+<h2>Full Node List</h2>
+
+<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></tr>
+<?
+foreach($list as $host) {
+  $node = new Mesh;
+  $node = $host;
+  print "<tr><td>" . $node->comment . "</td><td>" . $node->last_seen . "</td><td><a href='http://flynor.net/mesh/mesh.php?lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->longitude . "</a></td><td>" . $node->latitude . "</td><td>" . $node->mac . "</td></tr>\n";
+}
+?>
+</table>
+</td>
+</tr>
+</table>
   </body>
 </html>
 <?
