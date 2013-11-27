@@ -100,7 +100,7 @@ foreach($list as $node) {
 
 }
 
-asort($z, SORT_NUMERIC);
+asort($l, SORT_NUMERIC);
 
 if (isset($_GET['nodes'])) {
   $n = ($_GET['nodes']);
@@ -111,7 +111,7 @@ if (isset($_GET['nodes'])) {
   $n = sizeof($z);
 }
 
-$keys = array_slice($z, 0, $n, true);
+$keys = array_slice($l, 0, $n, true);
 
 ?>
 <table valign=top>
@@ -139,7 +139,7 @@ $keys = array_slice($z, 0, $n, true);
 
 <p style='color: #ff0000'>WARNING: Values needs to be carefully checked manually!</p>
 
-	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>Distance</tr>
+	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>distance</tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
