@@ -104,7 +104,7 @@ $keys = array_slice($z, 0, $n, true);
 <tr>
 <td valign=top>
 <h2>Nearest Nodes</h2>
-	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>x</th><th>y</th><th>abs(x+y)</td></tr>
+	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th><th>abs(&Delta;lon)</th><th>abs(&Delta;lat)</th><th>abs(&Delta;x+&Delta;y)</td></tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -112,7 +112,7 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.5f", $x[$m->k]); print "</td><td>"; printf("%0.5f", $y[$m->k]); print "</td><td>"; printf("%0.5f", $z[$m->k]); print "</td>\n  </tr>\n";
+      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>"; printf("%0.7f", $y[$m->k]); print "</td><td>"; printf("%0.7f", $x[$m->k]); print "</td><td>"; printf("%0.7f", $z[$m->k]); print "</td>\n  </tr>\n";
     }
   }
 }
