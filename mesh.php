@@ -1,12 +1,30 @@
 <?
-$earth_radius = 6371.0072 * 0.6214;
+
+/*
+  Earth
+
+  http://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+  Equatorial radius (km)          6378.1    
+  Polar radius (km)               6356.8         
+  Volumetric mean radius (km)     6371.0
+
+  http://en.wikipedia.org/wiki/Earth_radius
+  For Earth, the authalic radius is 6,371.0072 kilometers (3,958.7603 mi). [1]
+
+  [1] Moritz, H. (March 2000). "Geodetic Reference System 1980". Journal of Geodesy 74 (1): 128.133.
+  Bibcode:2000JGeod..74..128.. doi:10.1007/s001900050278
+
+*/
+
+$earth_radius = 6371.0072 * 0.6214; /* 1 km = 0.6214 mi */
 
 function torads($degrees) {
 	return ($degrees * (M_PI / 180));
 }
 
+
 function miles2kms($miles) { 
-	$ratio = 1.609344; 
+	$ratio = 1.609344;  /* 1 mile = 1.609344 km */
 	$kms = $miles * $ratio; 
 	return $kms;
 } 
