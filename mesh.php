@@ -155,9 +155,7 @@ $keys = array_slice($l, 0, $n, true);
 <td valign=top>
 <h2>Nearest Nodes</h2>
 
-<p style='color: #ff0000'>WARNING: Values needs to be carefully checked manually!</p>
-
-	<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>distance</tr>
+<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>distance</tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
