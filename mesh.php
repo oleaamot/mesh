@@ -132,7 +132,7 @@ if (isset($_GET['nodes'])) {
 $keys = array_slice($l, 0, $n, true);
 
 ?>
-<table valign=top>
+<table valign=top width="100%">
 <tr>
 <td valign="top">
 
