@@ -19,14 +19,14 @@
 $earth_radius = 6371.0072 * 0.6214; /* 1 km = 0.6214 mi */
 
 function torads($degrees) {
-	return ($degrees * (M_PI / 180));
+	 return ($degrees * (M_PI / 180));
 }
 
 
 function miles2kms($miles) { 
-	$ratio = 1.609344;  /* 1 mile = 1.609344 km */
-	$kms = $miles * $ratio; 
-	return $kms;
+	 $ratio = 1.609344;  /* 1 mile = 1.609344 km */
+	 $kms = $miles * $ratio; 
+	 return $kms;
 } 
 
 ?>
@@ -42,7 +42,7 @@ function miles2kms($miles) {
         <!-- link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/style.css" type="text/css" / -->
     <style type="text/css">
     <!--
-	 table { font-family: Verdana; font-size: 9px; }
+     table { font-family: Verdana; font-size: 9px; }
          tr { text-align: left; }
     -->
     </style>
@@ -60,33 +60,107 @@ function miles2kms($miles) {
 */
 
 class Mesh {
-  var $comment;
-  var $k;
-  var $last_seen;
-  var $latitude;
-  var $longitude;
-  var $mac;
+
+        /* Debug variables */
+        var $debug = -1;
+
+        /* Local variables */
+	var $x;
+	var $y;
+	var $z;
+	var $k;
+	var $l;
+	var $c;
+	var $map;
+
+	/* Cryptographic variables */
+	var $key;
+	var $hash;
+
+	/* Global variables */
+      	var $longitude;
+	var $latitude;
+	var $mac;
+	var $comment;
+	var $last_seen;
+
+	var $name;
+	var $operator;
+
 }
 
-$file = file_get_contents("https://raw.github.com/petterreinholdtsen/meshfx-node/master/oslo-nodes.csv");
-$list = array();
+$data = file_get_contents('http://procrastinate.delta9.pl/projects/meshfx/wiki/Nodes');
 
-$data = str_getcsv($file, "\n"); //parse the rows
-foreach($data as &$row) {
-  $row = str_getcsv($row, "\t"); //parse the items in rows
-  if ($row[0]=="longitude") {
-    continue;
-  } else {
-    $m = new Mesh;
-    $m->comment = $row[3];
-    $m->k = sha256($row[0].$row[1].$row[2].$row[3].$row[4]);
-    $m->last_seen = $row[4];
-    $m->latitude = $row[1];
-    $m->longitude = $row[0];
-    $m->mac = $row[2];
-    $r = array_push($list,$m);
+function parseTable($html)
+{
+  // Find the table
+  preg_match("/<table.*?>.*?<\/[\s]*table>/s", $html, $table_html);
+
+  // Get title for each row
+  preg_match_all("/<th.*?>(.*?)<\/[\s]*th>/", $table_html[0], $matches);
+  $row_headers = $matches[1];
+
+  // Iterate each row
+  preg_match_all("/<tr.*?>(.*?)<\/[\s]*tr>/s", $table_html[0], $matches);
+
+  $table = array();
+
+  foreach($matches[1] as $row_html)
+  {
+    preg_match_all("/<td.*?>(.*?)<\/[\s]*td>/", $row_html, $td_matches);
+    $row = array();
+    for($i=0; $i<count($td_matches[1]); $i++)
+    {
+      $td = strip_tags(html_entity_decode($td_matches[1][$i]));
+      $row[$row_headers[$i]] = $td;
+    }
+
+    if(count($row) > 0)
+      $table[] = $row;
   }
+  return $table;
 }
+$output = parseTable($data);
+?>
+
+<?
+$list = array();
+foreach($output as $item) {
+
+		$m = new Mesh;
+
+		foreach ($item as $key => $val) {
+
+			$key = chop($key);
+			$val = chop($val);
+
+			if ($key == "MAC") {
+			   $m->mac = $val;
+			}
+
+			if ($key == "Nodenavn") {
+			   $m->name = $val;
+			}
+
+			if ($key == "Operatør") {
+			   $m->operator = $val;
+			}
+
+			if ($key == "Sist sett") {
+			   $m->last_seen = $val;
+			}
+
+			if ($key == "GPS") {
+			   $m->latitude = strtok($val, " ");
+			   $m->longitude = strtok(" ");
+			   $m->k = md5($m->latitude.$m->longitude.$m->mac);
+			}
+
+		}
+		// print "<hr />\n";
+		$r = array_push($list,$m);
+}
+// print_r($list);
 
 if (isset($_GET['lat']) && isset($_GET['lon'])) {
   $location->latitude = $_GET['lat'];
@@ -114,7 +188,6 @@ foreach($list as $node) {
   $c[$node->k] = 2 * atan2(sqrt($a), sqrt(1-$a));
 
   $l[$node->k] = $earth_radius * $c[$node->k];
-  
 
 }
 
@@ -155,7 +228,7 @@ $keys = array_slice($l, 0, $n, true);
 <td valign=top>
 <h2>Nearest Nodes</h2>
 
-<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>distance</tr>
+<table><tr><th>name</th><th>operator</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></th><th>distance</tr>
 <?
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -163,7 +236,7 @@ foreach($keys as $node => $key) {
   foreach($list as $host) {
     if ($host->k == $m->k) {
       $m = $host;
-      print "  <tr>\n    <td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>~"; printf("%2.0f", (1000*miles2kms($l[$m->k]))); print " meters</td>\n  </tr>\n";
+      print "  <tr>\n    <td>" . $m->name . "</td><td>" . $m->operator . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</td><td>" . $m->mac . "</td><td>~"; printf("%2.0f", (1000*miles2kms($l[$m->k]))); print " meters</td>\n  </tr>\n";
     }
   }
 }
@@ -188,7 +261,7 @@ var lonLat = new OpenLayers.LonLat( <? echo $location->longitude; ?> ,<? echo $l
     
 
 <?
-// print "<table cellspacing=5 cellpadding=5 border=1><tr><th>comment</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>MAC</th></tr>";
+// print "<table cellspacing=5 cellpadding=5 border=1><tr><th>name</th><th>operator</th><th>last_seen</th><th>latitude</th><th>longitude</th><th>MAC</th></tr>";
 
 foreach($keys as $node => $key) {
   $m = new Mesh;
@@ -201,11 +274,11 @@ foreach($keys as $node => $key) {
 
       echo "var feature = new OpenLayers.Feature.Vector(
             new OpenLayers.Geometry.Point( " . $m->longitude . ", " . $m->latitude . ").transform(epsg4326, projectTo),
-            {description:'comment:" . $m->comment . "<br />MAC:" . $m->mac . "<br />last_seen:" . $m->last_seen . "'} ,
-            {externalGraphic: 'mesh.png', graphicHeight: 25, graphicWidth: 21, graphicXOffset:-12, graphicYOffset:-25  }
+            {description:'name:" . $m->name . "<br />operator:" . $m->operator . "<br />MAC:" . $m->mac . "<br />last_seen:" . $m->last_seen . "'} ,
+            {externalGraphic: 'mesh.png', graphicHeight: 25, graphicWidth: 25, graphicXOffset:-5, graphicYOffset:-5  }
         ); vectorLayer.addFeatures(feature);\n";
       
-      // print "<tr><td>" . $m->comment . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</td><td>" . $m->mac . "</td></tr>\n";
+      // print "<tr><td>" . $m->name . "</td><td>" . $m->operator . "</td><td>" . $m->last_seen . "</td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->latitude . "</a></td><td><a href='?nodes=" . $n . "&lat=" . $m->latitude . "&lon=" . $m->longitude . "'>" . $m->longitude . "</td><td>" . $m->mac . "</td></tr>\n";
     }
   }
     }
@@ -245,12 +318,12 @@ foreach($keys as $node => $key) {
 
 <h2>Full Node List</h2>
 
-<table><tr><th>comment</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></tr>
+<table><tr><th>name</th><th>operator</th><th>last_seen</th><th>lon</th><th>lat</th><th>MAC</th></tr>
 <?
 foreach($list as $host) {
   $node = new Mesh;
   $node = $host;
-  print "<tr><td>" . $node->comment . "</td><td>" . $node->last_seen . "</td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->longitude . "</a></td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->latitude . "</a></td><td>" . $node->mac . "</td></tr>\n";
+  print "<tr><td>" . $node->name . "</td><td>" . $node->operator . "</td><td>" . $node->last_seen . "</td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->longitude . "</a></td><td><a href='?nodes=" . $n . "&lon=" . $node->longitude . "&lat=" . $node->latitude . "'>" . $node->latitude . "</a></td><td>" . $node->mac . "</td></tr>\n";
 }
 ?>
 </table>
@@ -262,3 +335,4 @@ foreach($list as $host) {
 <?
 exit(0);
 ?>
+</pre>
